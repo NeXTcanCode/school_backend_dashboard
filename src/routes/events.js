@@ -1,5 +1,5 @@
 const express = require('express');
-const { getEvents, createEvent, deleteEvent } = require('../controllers/eventController');
+const { getEvents, createEvent, updateEvent, deleteEvent } = require('../controllers/eventController');
 const auth = require('../middleware/auth');
 const tenant = require('../middleware/tenant');
 const checkFeature = require('../middleware/checkFeature');
@@ -23,6 +23,16 @@ router.post(
   ]),
   validate(eventSchema),
   createEvent
+);
+
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: 'images', maxCount: 5 },
+    { name: 'attachment', maxCount: 1 }
+  ]),
+  validate(eventSchema),
+  updateEvent
 );
 
 router.delete('/:id', deleteEvent);

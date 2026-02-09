@@ -51,18 +51,33 @@ exports.updateFeatures = async (req, res) => {
   try {
     const { features } = req.body;
 
+    if (!features || typeof features !== 'object') {
+      return res.status(400).json({ success: false, message: 'Invalid features data' });
+    }
+
+    // Strictly Pick only the feature flags to prevent any other field updates
+    const updateData = {};
+    if (typeof features.news === 'boolean') updateData['features.news'] = features.news;
+    if (typeof features.events === 'boolean') updateData['features.events'] = features.events;
+    if (typeof features.gallery === 'boolean') updateData['features.gallery'] = features.gallery;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid features to update' });
+    }
+
     const school = await School.findOneAndUpdate(
       { schoolCode: req.user.schoolCode },
-      {
-        $set: {
-          features: features
-        }
-      },
-      { new: true }
+      { $set: updateData },
+      { new: true, runValidators: true }
     ).select('-password');
+
+    if (!school) {
+      return res.status(404).json({ success: false, message: 'School not found' });
+    }
 
     res.status(200).json({ success: true, data: school });
   } catch (error) {
+    console.error(`Update Features Error: ${error.message}`);
     res.status(500).json({ success: false, message: 'Failed to update features' });
   }
 };

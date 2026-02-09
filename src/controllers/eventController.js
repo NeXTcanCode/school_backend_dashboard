@@ -80,6 +80,64 @@ exports.createEvent = async (req, res) => {
 };
 
 /**
+ * @desc    Update event
+ * @route   PATCH /api/events/:id
+ * @access  Private
+ */
+exports.updateEvent = async (req, res) => {
+  try {
+    const { title, description, fromDate, toDate, location, existingImages } = req.body;
+
+    const event = await Event.findOne({ _id: req.params.id, schoolCode: req.schoolCode });
+
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    let imageUrls = [];
+    let attachmentUrl = event.attachment;
+
+    // 1. Keep existing images if provided
+    if (existingImages && Array.isArray(existingImages)) {
+      imageUrls = existingImages;
+    }
+
+    // 2. Add new images if uploaded
+    if (req.files && req.files.images) {
+      for (const file of req.files.images) {
+        const result = await uploadToCloudinary(file.path, 'events/images');
+        imageUrls.push(result);
+      }
+    }
+
+    // 3. Handle attachment update
+    if (req.files && req.files.attachment) {
+      const result = await uploadToCloudinary(req.files.attachment[0].path, 'events/docs');
+      attachmentUrl = result;
+    }
+
+    // 4. Update the event
+    event.title = title;
+    event.description = description;
+    event.fromDate = fromDate;
+    event.toDate = toDate;
+    event.location = location || event.location;
+    event.images = imageUrls;
+    event.attachment = attachmentUrl;
+
+    await event.save();
+
+    res.status(200).json({
+      success: true,
+      data: event,
+    });
+  } catch (error) {
+    console.error(`Update Event Error: ${error.message}`);
+    res.status(500).json({ success: false, message: 'Failed to update event' });
+  }
+};
+
+/**
  * @desc    Delete event
  * @route   DELETE /api/events/:id
  * @access  Private

@@ -1,5 +1,5 @@
 const express = require('express');
-const { getGallery, createGallery, deleteGallery } = require('../controllers/galleryController');
+const { getGallery, createGallery, updateGallery, deleteGallery } = require('../controllers/galleryController');
 const auth = require('../middleware/auth');
 const tenant = require('../middleware/tenant');
 const checkFeature = require('../middleware/checkFeature');
@@ -23,6 +23,16 @@ router.post(
   ]),
   validate(gallerySchema),
   createGallery
+);
+
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: 'images', maxCount: 5 },
+    { name: 'attachment', maxCount: 1 }
+  ]),
+  validate(gallerySchema),
+  updateGallery
 );
 
 router.delete('/:id', deleteGallery);

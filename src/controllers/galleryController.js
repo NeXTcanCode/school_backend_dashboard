@@ -86,6 +86,62 @@ exports.createGallery = async (req, res) => {
 };
 
 /**
+ * @desc    Update gallery item
+ * @route   PATCH /api/gallery/:id
+ * @access  Private
+ */
+exports.updateGallery = async (req, res) => {
+  try {
+    const { title, description, date, existingImages } = req.body;
+
+    const gallery = await Gallery.findOne({ _id: req.params.id, schoolCode: req.schoolCode });
+
+    if (!gallery) {
+      return res.status(404).json({ success: false, message: 'Gallery item not found' });
+    }
+
+    let imageUrls = [];
+    let attachmentUrl = gallery.attachment;
+
+    // 1. Keep existing images if provided
+    if (existingImages && Array.isArray(existingImages)) {
+      imageUrls = existingImages;
+    }
+
+    // 2. Add new images if uploaded
+    if (req.files && req.files.images) {
+      for (const file of req.files.images) {
+        const result = await uploadToCloudinary(file.path, 'gallery/images');
+        imageUrls.push(result);
+      }
+    }
+
+    // 3. Handle attachment update
+    if (req.files && req.files.attachment) {
+      const result = await uploadToCloudinary(req.files.attachment[0].path, 'gallery/docs');
+      attachmentUrl = result;
+    }
+
+    // 4. Update the gallery item
+    gallery.title = title || gallery.title;
+    gallery.description = description || gallery.description;
+    gallery.date = date || gallery.date;
+    gallery.images = imageUrls;
+    gallery.attachment = attachmentUrl;
+
+    await gallery.save();
+
+    res.status(200).json({
+      success: true,
+      data: gallery,
+    });
+  } catch (error) {
+    console.error(`Update Gallery Error: ${error.message}`);
+    res.status(500).json({ success: false, message: 'Failed to update gallery item' });
+  }
+};
+
+/**
  * @desc    Delete gallery entry
  * @route   DELETE /api/gallery/:id
  * @access  Private

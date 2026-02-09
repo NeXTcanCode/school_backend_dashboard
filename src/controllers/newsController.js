@@ -80,6 +80,63 @@ exports.createNews = async (req, res) => {
 };
 
 /**
+ * @desc    Update news
+ * @route   PATCH /api/news/:id
+ * @access  Private
+ */
+exports.updateNews = async (req, res) => {
+  try {
+    const { title, description, fromDate, toDate, existingImages } = req.body;
+
+    const news = await News.findOne({ _id: req.params.id, schoolCode: req.schoolCode });
+
+    if (!news) {
+      return res.status(404).json({ success: false, message: 'News not found' });
+    }
+
+    let imageUrls = [];
+    let attachmentUrl = news.attachment;
+
+    // 1. Keep existing images if provided
+    if (existingImages && Array.isArray(existingImages)) {
+      imageUrls = existingImages;
+    }
+
+    // 2. Add new images if uploaded
+    if (req.files && req.files.images) {
+      for (const file of req.files.images) {
+        const result = await uploadToCloudinary(file.path, 'news/images');
+        imageUrls.push(result);
+      }
+    }
+
+    // 3. Handle attachment update
+    if (req.files && req.files.attachment) {
+      const result = await uploadToCloudinary(req.files.attachment[0].path, 'news/docs');
+      attachmentUrl = result;
+    }
+
+    // 4. Update the news item
+    news.title = title;
+    news.description = description;
+    news.fromDate = fromDate;
+    news.toDate = toDate;
+    news.images = imageUrls;
+    news.attachment = attachmentUrl;
+
+    await news.save();
+
+    res.status(200).json({
+      success: true,
+      data: news,
+    });
+  } catch (error) {
+    console.error(`Update News Error: ${error.message}`);
+    res.status(500).json({ success: false, message: 'Failed to update news' });
+  }
+};
+
+/**
  * @desc    Delete news
  * @route   DELETE /api/news/:id
  * @access  Private

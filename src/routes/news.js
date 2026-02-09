@@ -1,5 +1,5 @@
 const express = require('express');
-const { getNews, createNews, deleteNews } = require('../controllers/newsController');
+const { getNews, createNews, updateNews, deleteNews } = require('../controllers/newsController');
 const auth = require('../middleware/auth');
 const tenant = require('../middleware/tenant');
 const checkFeature = require('../middleware/checkFeature');
@@ -25,6 +25,16 @@ router.post(
   ]),
   validate(newsSchema),
   createNews
+);
+
+router.patch(
+  '/:id',
+  upload.fields([
+    { name: 'images', maxCount: 5 },
+    { name: 'attachment', maxCount: 1 }
+  ]),
+  validate(newsSchema),
+  updateNews
 );
 
 router.delete('/:id', deleteNews);
