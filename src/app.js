@@ -5,7 +5,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: true,
+    origin: ['http://localhost:5173', 'https://school-frontend-dashboard.netlify.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Content-Type', 'Authorization'],
