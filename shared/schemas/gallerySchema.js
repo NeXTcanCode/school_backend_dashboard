@@ -6,7 +6,7 @@ const gallerySchema = z.object({
   date: z.string().refine(val => !isNaN(Date.parse(val)), {
     message: "Invalid date",
   }).optional(),
-  existingImages: z.array(z.string()).optional(),
+  existingImages: z.array(z.string()).max(5, "Maximum 5 images allowed").optional(),
   attachment: z.string().optional(),
 });
 

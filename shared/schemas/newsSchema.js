@@ -9,7 +9,7 @@ const newsSchema = z.object({
   toDate: z.string().refine(val => !isNaN(Date.parse(val)), {
     message: "Invalid toDate",
   }),
-  existingImages: z.array(z.string()).optional(),
+  existingImages: z.array(z.string()).max(5, "Maximum 5 images allowed").optional(),
   attachment: z.string().optional(),
 });
 
