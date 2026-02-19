@@ -49,20 +49,21 @@ exports.getSchoolProfile = async (req, res) => {
  */
 exports.updateFeatures = async (req, res) => {
   try {
-    const { features } = req.body;
-
-    if (!features || typeof features !== 'object') {
-      return res.status(400).json({ success: false, message: 'Invalid features data' });
-    }
+    const { schoolName, features } = req.body;
 
     // Strictly Pick only the feature flags to prevent any other field updates
     const updateData = {};
-    if (typeof features.news === 'boolean') updateData['features.news'] = features.news;
-    if (typeof features.events === 'boolean') updateData['features.events'] = features.events;
-    if (typeof features.gallery === 'boolean') updateData['features.gallery'] = features.gallery;
+    if (typeof schoolName === 'string' && schoolName.trim().length >= 3) {
+      updateData.schoolName = schoolName.trim();
+    }
+    if (features && typeof features === 'object') {
+      if (typeof features.news === 'boolean') updateData['features.news'] = features.news;
+      if (typeof features.events === 'boolean') updateData['features.events'] = features.events;
+      if (typeof features.gallery === 'boolean') updateData['features.gallery'] = features.gallery;
+    }
 
     if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ success: false, message: 'No valid features to update' });
+      return res.status(400).json({ success: false, message: 'No valid settings to update' });
     }
 
     const school = await School.findOneAndUpdate(

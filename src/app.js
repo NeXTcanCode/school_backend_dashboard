@@ -22,6 +22,7 @@ app.use('/api/news', require('./routes/news'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/public', require('./routes/public'));
+app.use('/api/chatbot', require('./routes/chatbot'));
 
 // Health check
 app.get('/health', (req, res) => {
